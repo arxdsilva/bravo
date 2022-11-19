@@ -1,0 +1,28 @@
+version: '3'
+
+volumes:
+  database: { }
+
+services:
+  bravo:
+    image: bravo:latest
+    depends_on:
+        - postgres
+    environment:
+        - POSTGRES_DB=postgres
+        - POSTGRES_PASSWORD=postgres
+        - POSTGRES_USER=postgres
+    ports:
+        - "8888:8888"
+  postgres:
+    image: "postgres:15"
+    volumes:
+      - database:/var/lib/postgresql/data:Z
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - TZ=America/Sao_Paulo
+# todo: migration
