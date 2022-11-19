@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/arxdsilva/bravo/internal/core"
+	log "github.com/sirupsen/logrus"
 )
 
 type Exchanger interface {
@@ -29,17 +30,21 @@ func New(cfg Config) Exchanger {
 }
 
 func (e Exchange) GetCurrencies() (l map[string]string, err error) {
+	lg := log.WithField("pkg", "exchange")
 	req, err := http.NewRequest(http.MethodGet, "https://api.apilayer.com/exchangerates_data/symbols", nil)
 	if err != nil {
+		lg.WithError(err).Error("[GetCurrencies] NewRequest")
 		return
 	}
 	req.Header.Add("apiKey", e.APIKey)
 	resp, err := e.client.Do(req)
 	if err != nil {
+		lg.WithError(err).Error("[GetCurrencies] client.Do")
 		return
 	}
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
+		lg.WithError(err).Error("[GetCurrencies] ReadAll")
 		return
 	}
 	symbols := &core.SymbolsClientResp{
@@ -47,14 +52,19 @@ func (e Exchange) GetCurrencies() (l map[string]string, err error) {
 	}
 	err = json.Unmarshal(b, symbols)
 	if err != nil {
+		lg.WithError(err).Error("[GetCurrencies] Unmarshal")
 		return
 	}
 	if !symbols.Success {
+		lg.WithField("success", symbols.Success).Warn("[GetCurrencies] success")
 		return
 	}
+	lg.Info("[GetCurrencies] ok")
 	return symbols.Symbols, err
 }
 
 func (e Exchange) Exchange(to, from string, amount float64) (resp core.ConversionResp, err error) {
+	lg := log.WithField("pkg", "exchange")
+	lg.Info("[Exchange] ok")
 	return
 }
