@@ -1,32 +1,24 @@
 package service
 
-import "context"
+import (
+	"context"
 
-type Orders interface {
-	GetOne(ctx context.Context) (string, error)
-	GetMany(ctx context.Context) error
-	Remove(ctx context.Context) error
+	"github.com/arxdsilva/bravo/internal/core"
+)
+
+type Conversion interface {
+	Convert(ctx context.Context, conv core.ConversionSVC) error
 }
 
 type Service struct {
-	Repo OrdersRepository
+	Repo ConversionRepository
 }
 
-func NewService(repo OrdersRepository) Service {
+func NewService(repo ConversionRepository) Service {
 	return Service{repo}
 }
 
-func (s Service) GetOne(ctx context.Context) (str string, err error) {
-
-	return s.Repo.GetOne()
-}
-
-func (s Service) GetMany(ctx context.Context) (err error) {
-
-	return
-}
-
-func (s Service) Remove(ctx context.Context) (err error) {
+func (s Service) Convert(ctx context.Context, conv core.ConversionSVC) (err error) {
 
 	return
 }

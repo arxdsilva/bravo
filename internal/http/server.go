@@ -12,12 +12,12 @@ import (
 
 type Server struct {
 	server        *echo.Echo
-	service       service.Orders
+	service       service.Conversion
 	tokenProvider *jwt.TokenProvider
 	config        Config
 }
 
-func NewServer(svc service.Orders, tp *jwt.TokenProvider, cfg Config) Server {
+func NewServer(svc service.Conversion, tp *jwt.TokenProvider, cfg Config) Server {
 	return Server{
 		service:       svc,
 		tokenProvider: tp,
