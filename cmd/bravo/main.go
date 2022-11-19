@@ -11,6 +11,7 @@ import (
 	"github.com/arxdsilva/bravo/internal/jwt"
 	"github.com/arxdsilva/bravo/internal/logger"
 	"github.com/arxdsilva/bravo/internal/option"
+	"github.com/arxdsilva/bravo/internal/service"
 	"golang.org/x/sync/errgroup"
 
 	log "github.com/sirupsen/logrus"
@@ -52,8 +53,10 @@ func startup(ctx context.Context, cfg *option.Config) error {
 
 	provider := jwt.NewProvider(cfg.JWT) // take the provider and pass to the rest api
 
+	svc := service.NewService(nil)
+
 	// change this
-	srv := http.NewServer(nil, &provider, cfg.HTTP)
+	srv := http.NewServer(svc, &provider, cfg.HTTP)
 
 	errg, ctx := errgroup.WithContext(ctx)
 	errg.Go(func() error {
