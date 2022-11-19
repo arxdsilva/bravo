@@ -50,10 +50,10 @@ func startup(ctx context.Context, cfg *option.Config) error {
 
 	// maybe add some tracer
 
-	jwt.NewProvider(cfg.JWT) // take the provider and pass to the rest api
+	provider := jwt.NewProvider(cfg.JWT) // take the provider and pass to the rest api
 
 	// change this
-	srv := http.NewServer(nil, nil, cfg.HTTP)
+	srv := http.NewServer(nil, &provider, cfg.HTTP)
 
 	errg, ctx := errgroup.WithContext(ctx)
 	errg.Go(func() error {
