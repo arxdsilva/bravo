@@ -83,3 +83,60 @@ func TestConversionAPI_Check(t *testing.T) {
 		})
 	}
 }
+
+func Test_ConvertToService(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		c          ConversionAPI
+		wantCs     ConversionSVC
+		wantShould bool
+		wantErrFn  require.ErrorAssertionFunc
+	}{
+		{
+			name:       "empty should return amount err",
+			c:          ConversionAPI{},
+			wantCs:     ConversionSVC{},
+			wantShould: false,
+			wantErrFn:  require.Error,
+		},
+		{
+			name: "same currencies should not error",
+			c: ConversionAPI{
+				From:   "BRL",
+				To:     "BRL",
+				Amount: "1234",
+			},
+			wantCs: ConversionSVC{
+				From:   "BRL",
+				To:     "BRL",
+				Amount: 1234,
+			},
+			wantShould: false,
+			wantErrFn:  require.NoError,
+		},
+		{
+			name: "different currencies should not error, with should true",
+			c: ConversionAPI{
+				From:   "USD",
+				To:     "BRL",
+				Amount: "1234",
+			},
+			wantCs: ConversionSVC{
+				From:   "USD",
+				To:     "BRL",
+				Amount: 1234,
+			},
+			wantShould: true,
+			wantErrFn:  require.NoError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotCs, gotShould, err := ConvertToService(tt.c)
+			tt.wantErrFn(t, err)
+			require.Equal(t, tt.wantCs, gotCs)
+			require.Equal(t, tt.wantShould, gotShould)
+		})
+	}
+}
