@@ -6,8 +6,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func RouterRegister(e *echo.Echo) {
+func (s Server) RouterRegister(e *echo.Echo) {
 	e.GET("/", HealthCheck)
+	e.GET("/convert", s.Convert)
 }
 
 // todo: allow this to be configurable and to pass optional checks

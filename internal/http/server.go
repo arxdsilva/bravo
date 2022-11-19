@@ -32,7 +32,7 @@ func (s Server) Run(ctx context.Context) error {
 	}()
 	s.server = echo.New()
 	RegisterMiddlewares(s.server)
-	RouterRegister(s.server)
+	s.RouterRegister(s.server)
 	return s.server.Start(fmt.Sprintf(":%v", s.config.Port))
 }
 
