@@ -2,6 +2,7 @@ package exchange
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -12,17 +13,19 @@ import (
 
 type Exchanger interface {
 	GetCurrencies() (map[string]string, error)
-	Exchange(to, from string, amount float64) (core.ConversionResp, error)
+	Exchange(from, to string, amount float64) (core.ConversionResp, error)
 }
 
 type Exchange struct {
-	APIKey string
-	client http.Client
+	APIKey  string
+	BaseURL string
+	client  http.Client
 }
 
 func New(cfg Config) Exchanger {
 	return Exchange{
-		APIKey: cfg.APIKey,
+		APIKey:  cfg.APIKey,
+		BaseURL: cfg.APIBaseURL,
 		client: http.Client{
 			Timeout: time.Duration(time.Second * 10),
 		},
@@ -31,7 +34,8 @@ func New(cfg Config) Exchanger {
 
 func (e Exchange) GetCurrencies() (l map[string]string, err error) {
 	lg := log.WithField("pkg", "exchange")
-	req, err := http.NewRequest(http.MethodGet, "https://api.apilayer.com/exchangerates_data/symbols", nil)
+	url := fmt.Sprintf("%v/symbols", e.BaseURL)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		lg.WithError(err).Error("[GetCurrencies] NewRequest")
 		return
@@ -63,8 +67,52 @@ func (e Exchange) GetCurrencies() (l map[string]string, err error) {
 	return symbols.Symbols, err
 }
 
-func (e Exchange) Exchange(to, from string, amount float64) (resp core.ConversionResp, err error) {
+func (e Exchange) Exchange(from, to string, amount float64) (core.ConversionResp, error) {
 	lg := log.WithField("pkg", "exchange")
+	url := fmt.Sprintf("%v/convert", e.BaseURL)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		lg.WithError(err).Error("[Exchange] NewRequest")
+		return core.ConversionResp{}, err
+	}
+	req.Header.Add("apiKey", e.APIKey)
+
+	q := req.URL.Query()
+	q.Add("from", from)
+	q.Add("to", to)
+	q.Add("amount", fmt.Sprintf("%f", amount))
+	req.URL.RawQuery = q.Encode()
+
+	resp, err := e.client.Do(req)
+	if err != nil {
+		lg.WithError(err).Error("[Exchange] client.Do")
+		return core.ConversionResp{}, err
+	}
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		lg.WithError(err).Error("[Exchange] ReadAll")
+		return core.ConversionResp{}, err
+	}
+
+	conv := &core.ConvertClientResp{}
+
+	if err = json.Unmarshal(b, conv); err != nil {
+		lg.WithError(err).Error("[Exchange] Unmarshal")
+		return core.ConversionResp{}, err
+	}
+
+	if !conv.Success {
+		lg.WithField("success", conv.Success).Warn("[Exchange] success")
+		return core.ConversionResp{}, err
+	}
+
 	lg.Info("[Exchange] ok")
-	return
+	return core.ConversionResp{
+		From:             from,
+		To:               to,
+		OriginalAmount:   amount,
+		ConvertedAmount:  conv.Result,
+		ConversionSource: "exchange",
+	}, err
 }
