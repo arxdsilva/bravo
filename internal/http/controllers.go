@@ -27,15 +27,15 @@ func (s Server) Convert(c echo.Context) (err error) {
 
 	if !shouldConvert {
 		// log
-		return c.JSON(http.StatusOK, convService)
+		return c.JSON(http.StatusOK, core.TransformSVCToResp(convService, convService.Amount, "no-edit"))
 	}
 
-	err = s.service.Convert(c.Request().Context(), convService)
+	amount, source, err := s.service.Convert(c.Request().Context(), convService)
 	if err != nil {
 		// log
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	// log
-	return c.JSON(http.StatusOK, "ok")
+	return c.JSON(http.StatusOK, core.TransformSVCToResp(convService, amount, source))
 }

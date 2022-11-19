@@ -7,7 +7,7 @@ import (
 )
 
 type Conversion interface {
-	Convert(ctx context.Context, conv core.ConversionSVC) error
+	Convert(ctx context.Context, conv core.ConversionSVC) (amount float64, source string, err error)
 }
 
 type Service struct {
@@ -18,7 +18,7 @@ func NewService(repo ConversionRepository) Service {
 	return Service{repo}
 }
 
-func (s Service) Convert(ctx context.Context, conv core.ConversionSVC) (err error) {
+func (s Service) Convert(ctx context.Context, conv core.ConversionSVC) (amount float64, source string, err error) {
 
 	return
 }
