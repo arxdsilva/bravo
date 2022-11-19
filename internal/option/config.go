@@ -3,6 +3,7 @@ package option
 import (
 	"fmt"
 
+	"github.com/arxdsilva/bravo/internal/clients/exchange"
 	"github.com/arxdsilva/bravo/internal/http"
 	"github.com/arxdsilva/bravo/internal/jwt"
 	"github.com/arxdsilva/bravo/internal/logger"
@@ -13,9 +14,10 @@ import (
 const prefix = "APP"
 
 type Config struct {
-	HTTP http.Config
-	Log  logger.Config
-	JWT  jwt.Config
+	HTTP     http.Config
+	Log      logger.Config
+	JWT      jwt.Config
+	Exchange exchange.Config
 }
 
 func FromEnv() (*Config, error) {
