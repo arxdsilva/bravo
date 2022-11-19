@@ -1,0 +1,15 @@
+on: [push, pull_request]
+name: Test
+jobs:
+  golangci:
+      name: lint # could be with test, but this way we know which broke
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/setup-go@v3
+          with:
+            go-version: 1.19
+        - uses: actions/checkout@v3
+        - name: golangci-lint
+          uses: golangci/golangci-lint-action@v3
+          with:
+            version: latest
