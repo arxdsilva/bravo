@@ -7,6 +7,7 @@ import (
 	"github.com/arxdsilva/bravo/internal/jwt"
 	"github.com/arxdsilva/bravo/internal/service"
 	"github.com/labstack/echo/v4"
+	log "github.com/sirupsen/logrus"
 )
 
 type Server struct {
@@ -36,5 +37,8 @@ func (s Server) Run(ctx context.Context) error {
 }
 
 func (s Server) stop() {
-	s.server.Shutdown(context.Background())
+	err := s.server.Shutdown(context.Background())
+	if err != nil {
+		log.Error("shutdown err: ", err)
+	}
 }
