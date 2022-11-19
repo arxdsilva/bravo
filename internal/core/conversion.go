@@ -40,14 +40,23 @@ func (c ConversionAPI) Check() (err error) {
 
 // ConvertToService assumes that Check has already been called
 // and everything is ok to proceed
-func ConvertToService(c ConversionAPI) (ConversionSVC, error) {
+//
+// if currencies are equal, returns dont convert command and return same amount
+func ConvertToService(c ConversionAPI) (cs ConversionSVC, should bool, err error) {
 	amount, err := strconv.ParseFloat(c.Amount, 64)
 	if err != nil {
-		return ConversionSVC{}, ErrAmountIsNotANumber
+		return cs, false, ErrAmountIsNotANumber
+	}
+	if c.From == c.To {
+		return ConversionSVC{
+			From:   c.From,
+			To:     c.To,
+			Amount: amount,
+		}, false, nil
 	}
 	return ConversionSVC{
 		From:   c.From,
 		To:     c.To,
 		Amount: amount,
-	}, err
+	}, true, err
 }

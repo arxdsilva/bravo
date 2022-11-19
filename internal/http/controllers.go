@@ -19,10 +19,15 @@ func (s Server) Convert(c echo.Context) (err error) {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	convService, err := core.ConvertToService(conv)
+	convService, shouldConvert, err := core.ConvertToService(conv)
 	if err != nil {
 		// log
 		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	if !shouldConvert {
+		// log
+		return c.JSON(http.StatusOK, convService)
 	}
 
 	err = s.service.Convert(c.Request().Context(), convService)
