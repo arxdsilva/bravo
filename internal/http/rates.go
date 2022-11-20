@@ -62,3 +62,38 @@ func (s Server) CreateRate(c echo.Context) (err error) {
 	lg.Info("success")
 	return c.JSON(http.StatusCreated, rate)
 }
+
+// UpdateRate tries to create a currency rate into DB
+//
+// HTTP responses:
+// 201 Created
+// 400 Bad Request
+// 500 Internal Server Error
+func (s Server) UpdateRate(c echo.Context) (err error) {
+	lg := log.WithFields(log.Fields{
+		"pkg":   "http",
+		"route": "UpdateRate",
+		"cid":   c.Response().Header().Get(echo.HeaderXRequestID),
+	})
+
+	rate := &core.CurrencyRate{}
+	if err = c.Bind(rate); err != nil {
+		lg.WithError(err).Error("c.Bind")
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	if err = rate.Check(); err != nil {
+		lg.WithError(err).Error("rate.Check")
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	err = s.service.UpdateRate(
+		c.Request().Context(), rate.From, rate.To, rate.Rate)
+	if err != nil { // check not found err
+		lg.WithError(err).Error("service.UpdateRate")
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	lg.Info("success")
+	return c.JSON(http.StatusCreated, rate)
+}

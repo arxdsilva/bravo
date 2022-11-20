@@ -18,7 +18,7 @@ func (s Server) RouterRegister(e *echo.Echo) {
 	// currency rate management
 	e.GET("/convertion/rates", s.GetRates)
 	e.POST("/convertion/rates", s.CreateRate)
-	e.PUT("/convertion/rates", HealthCheck)
+	e.PUT("/convertion/rates", s.UpdateRate)
 	e.DELETE("/convertion/rates", HealthCheck)
 }
 
