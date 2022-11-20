@@ -60,6 +60,7 @@ func (s Server) AddCurrency(c echo.Context) (err error) {
 		lg.WithError(err).Error("service.AddCurrency")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
+
 	lg.Info("success")
 	return c.JSON(http.StatusCreated, currency)
 }
