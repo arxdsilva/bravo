@@ -338,3 +338,121 @@ func Test_UpdateCurrency(t *testing.T) {
 		})
 	}
 }
+
+func Test_GetCurrency(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+
+		wantToAdd    bool
+		sentCurrency string
+
+		getCurrencyErr  error
+		getCurrencyResp core.Currency
+
+		wantBody    string
+		wantErrFn   require.ErrorAssertionFunc
+		wantCode    int
+		wantHTTPErr *echo.HTTPError
+	}{
+		{
+			name:            "check error - symbol too small",
+			wantToAdd:       false,
+			sentCurrency:    "BR",
+			getCurrencyErr:  nil,
+			getCurrencyResp: core.Currency{},
+			wantBody:        "",
+			wantErrFn:       require.Error,
+			wantCode:        http.StatusBadRequest,
+			wantHTTPErr: &echo.HTTPError{
+				Code:     http.StatusBadRequest,
+				Message:  "currency symbol has to have 3 or more characters",
+				Internal: nil,
+			},
+		},
+		{
+			name:            "add error",
+			wantToAdd:       true,
+			sentCurrency:    "BRL",
+			getCurrencyResp: core.Currency{},
+			getCurrencyErr:  errors.New("some err"),
+			wantBody:        "",
+			wantErrFn:       require.Error,
+			wantCode:        http.StatusInternalServerError,
+			wantHTTPErr: &echo.HTTPError{
+				Code:     http.StatusInternalServerError,
+				Message:  "some err",
+				Internal: nil,
+			},
+		},
+		{
+			name:            "not found error",
+			wantToAdd:       true,
+			sentCurrency:    "BRL",
+			getCurrencyResp: core.Currency{},
+			getCurrencyErr:  core.ErrNotFound,
+			wantBody:        "",
+			wantErrFn:       require.Error,
+			wantCode:        http.StatusBadRequest,
+			wantHTTPErr: &echo.HTTPError{
+				Code:     http.StatusBadRequest,
+				Message:  core.ErrCurrencyNotFound.Error(),
+				Internal: nil,
+			},
+		},
+		{
+			name:      "no error",
+			wantToAdd: true,
+			getCurrencyResp: core.Currency{
+				Symbol: "BRL",
+			},
+			sentCurrency:   "BRL",
+			getCurrencyErr: nil,
+			wantBody:       "{\"symbol\":\"BRL\",\"description\":\"\",\"source\":\"\"}\n",
+			wantErrFn:      require.NoError,
+			wantCode:       http.StatusOK,
+			wantHTTPErr:    nil,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mock := rsv.NewMockResolver(ctrl)
+
+			b, err := json.Marshal(tt.sentCurrency)
+			require.NoError(t, err)
+
+			req, err := http.NewRequest(http.MethodPost, "/currencies", strings.NewReader(string(b)))
+			require.NoError(t, err)
+
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+
+			rec := httptest.NewRecorder()
+			ctx := echo.New().NewContext(req, rec)
+			ctx.SetPath("/currencies/:symbol")
+			ctx.SetParamNames("symbol")
+			ctx.SetParamValues(tt.sentCurrency)
+
+			if tt.wantToAdd {
+				mock.EXPECT().GetCurrency(gomock.Any(), tt.sentCurrency).
+					Return(tt.getCurrencyResp, tt.getCurrencyErr)
+			}
+
+			s := Server{service: mock}
+			err = s.GetCurrency(ctx)
+			tt.wantErrFn(t, err)
+			if err == nil {
+				require.Equal(t, tt.wantCode, rec.Code)
+				b, err := io.ReadAll(rec.Body)
+				require.NoError(t, err)
+				require.Equal(t, tt.wantBody, string(b))
+				return
+			}
+			require.Equal(t, tt.wantHTTPErr, err)
+		})
+	}
+}
