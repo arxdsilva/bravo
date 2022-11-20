@@ -1,6 +1,7 @@
 package exchange
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,18 +12,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type Exchanger interface {
-	GetCurrencies() (map[string]string, error)
-	Exchange(from, to string, amount float64) (core.ConversionResp, error)
-}
-
 type Exchange struct {
 	APIKey  string
 	BaseURL string
 	client  http.Client
 }
 
-func New(cfg Config) Exchanger {
+func New(cfg Config) Exchange {
 	return Exchange{
 		APIKey:  cfg.APIKey,
 		BaseURL: cfg.APIBaseURL,
@@ -32,7 +28,10 @@ func New(cfg Config) Exchanger {
 	}
 }
 
-func (e Exchange) GetCurrencies() (l map[string]string, err error) {
+// GetCurrencies tries to get all currencies from our currency provider
+//
+// receives a ctx so the request can be cancelled if the original request is also cancelled
+func (e Exchange) GetCurrencies(ctx context.Context) (l map[string]string, err error) {
 	lg := log.WithField("pkg", "exchange")
 	url := fmt.Sprintf("%v/symbols", e.BaseURL)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -41,6 +40,8 @@ func (e Exchange) GetCurrencies() (l map[string]string, err error) {
 		return
 	}
 	req.Header.Add("apiKey", e.APIKey)
+
+	req = req.WithContext(ctx)
 	resp, err := e.client.Do(req)
 	if err != nil {
 		lg.WithError(err).Error("[GetCurrencies] client.Do")
@@ -69,7 +70,10 @@ func (e Exchange) GetCurrencies() (l map[string]string, err error) {
 	return l, err
 }
 
-func (e Exchange) Exchange(from, to string, amount float64) (core.ConversionResp, error) {
+// Exchange tries to get the exchange rate for the given currencies
+//
+// receives a ctx so the request can be cancelled if the original request is also cancelled
+func (e Exchange) Exchange(ctx context.Context, from, to string, amount float64) (core.ConversionResp, error) {
 	lg := log.WithField("pkg", "exchange")
 	url := fmt.Sprintf("%v/convert", e.BaseURL)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -85,6 +89,7 @@ func (e Exchange) Exchange(from, to string, amount float64) (core.ConversionResp
 	q.Add("amount", fmt.Sprintf("%f", amount))
 	req.URL.RawQuery = q.Encode()
 
+	req = req.WithContext(ctx)
 	resp, err := e.client.Do(req)
 	if err != nil {
 		lg.WithError(err).Error("[Exchange] client.Do")
@@ -114,7 +119,7 @@ func (e Exchange) Exchange(from, to string, amount float64) (core.ConversionResp
 		From:             from,
 		To:               to,
 		OriginalAmount:   amount,
-		ConvertedAmount:  amount * conv.Result,
+		ConvertedAmount:  conv.Result,
 		ConversionSource: "exchange",
 	}, err
 }

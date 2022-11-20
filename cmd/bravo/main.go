@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/arxdsilva/bravo/internal/clients/exchange"
 	"github.com/arxdsilva/bravo/internal/http"
 	"github.com/arxdsilva/bravo/internal/jwt"
 	"github.com/arxdsilva/bravo/internal/logger"
@@ -53,7 +54,9 @@ func startup(ctx context.Context, cfg *option.Config) error {
 
 	provider := jwt.NewProvider(cfg.JWT) // take the provider and pass to the rest api
 
-	svc := service.NewService(nil)
+	excg := exchange.New(cfg.Exchange)
+
+	svc := service.NewService(nil, excg)
 
 	// change this
 	srv := http.NewServer(svc, &provider, cfg.HTTP)
