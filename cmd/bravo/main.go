@@ -58,8 +58,9 @@ func startup(ctx context.Context, cfg *option.Config) error {
 
 	svc := service.NewService(nil, excg)
 
-	// change this
-	srv := http.NewServer(svc, nil, cfg.HTTP)
+	srv := http.NewServer(svc, cfg.HTTP)
+
+	// add seed svc
 
 	errg, ctx := errgroup.WithContext(ctx)
 	errg.Go(func() error {

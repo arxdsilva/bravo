@@ -10,17 +10,15 @@ import (
 )
 
 type Server struct {
-	server        *echo.Echo
-	service       service.Resolver
-	tokenProvider interface{} // -- could have a JWT provider for auth
-	config        Config
+	server  *echo.Echo
+	service service.Resolver
+	config  Config
 }
 
-func NewServer(svc service.Resolver, tp interface{}, cfg Config) Server {
+func NewServer(svc service.Resolver, cfg Config) Server {
 	return Server{
-		service:       svc,
-		tokenProvider: tp,
-		config:        cfg,
+		service: svc,
+		config:  cfg,
 	}
 }
 
