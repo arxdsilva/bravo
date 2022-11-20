@@ -51,9 +51,7 @@ func (e Exchange) GetCurrencies() (l map[string]string, err error) {
 		lg.WithError(err).Error("[GetCurrencies] ReadAll")
 		return
 	}
-	symbols := &core.SymbolsClientResp{
-		Symbols: map[string]string{},
-	}
+	symbols := &core.SymbolsClientResp{}
 	err = json.Unmarshal(b, symbols)
 	if err != nil {
 		lg.WithError(err).Error("[GetCurrencies] Unmarshal")
@@ -63,8 +61,12 @@ func (e Exchange) GetCurrencies() (l map[string]string, err error) {
 		lg.WithField("success", symbols.Success).Warn("[GetCurrencies] success")
 		return
 	}
+	l = map[string]string{}
+	for k, v := range symbols.Symbols {
+		l[k] = v.Description
+	}
 	lg.Info("[GetCurrencies] ok")
-	return symbols.Symbols, err
+	return l, err
 }
 
 func (e Exchange) Exchange(from, to string, amount float64) (core.ConversionResp, error) {
@@ -112,7 +114,7 @@ func (e Exchange) Exchange(from, to string, amount float64) (core.ConversionResp
 		From:             from,
 		To:               to,
 		OriginalAmount:   amount,
-		ConvertedAmount:  conv.Result,
+		ConvertedAmount:  amount * conv.Result,
 		ConversionSource: "exchange",
 	}, err
 }
