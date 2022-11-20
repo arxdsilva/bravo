@@ -38,7 +38,6 @@ func run() error {
 }
 
 func startup(ctx context.Context, cfg *option.Config) error {
-
 	if err := logger.Setup(cfg.Log); err != nil {
 		return fmt.Errorf(`log setup failed %w`, err)
 	}
@@ -46,8 +45,12 @@ func startup(ctx context.Context, cfg *option.Config) error {
 	if err := cfg.Validate(); err != nil {
 		return fmt.Errorf(`config validation error %w`, err)
 	}
+	lg := log.WithFields(log.Fields{
+		"pkg": "main",
+		"fn":  "startup",
+	})
 
-	log.Info("starting the service")
+	lg.Info("starting the service")
 
 	// maybe add some tracer
 
@@ -63,13 +66,13 @@ func startup(ctx context.Context, cfg *option.Config) error {
 		return srv.Run(ctx)
 	})
 
-	log.Info("service started")
+	lg.Info("service started")
 
 	if err := errg.Wait(); err != nil {
-		log.Error(err)
+		lg.Error(err)
 	}
 
-	log.Info("service stopped")
+	lg.Info("service stopped")
 	return nil
 }
 
