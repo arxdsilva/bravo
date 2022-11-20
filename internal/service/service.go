@@ -6,7 +6,7 @@ import (
 	"github.com/arxdsilva/bravo/internal/core"
 )
 
-type Conversion interface {
+type Resolver interface {
 	Convert(ctx context.Context, conv core.ConversionSVC) (amount float64, source string, err error)
 }
 
