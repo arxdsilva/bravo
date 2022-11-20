@@ -211,7 +211,7 @@ func Test_UpdateCurrency(t *testing.T) {
 	tests := []struct {
 		name string
 
-		wantToAdd    bool
+		wantToUpdt   bool
 		sentCurrency core.Currency
 
 		updateCurrencyErr error
@@ -222,8 +222,8 @@ func Test_UpdateCurrency(t *testing.T) {
 		wantHTTPErr *echo.HTTPError
 	}{
 		{
-			name:      "check error - no symbol",
-			wantToAdd: false,
+			name:       "check error - no symbol",
+			wantToUpdt: false,
 			sentCurrency: core.Currency{
 				Symbol: "",
 			},
@@ -238,8 +238,8 @@ func Test_UpdateCurrency(t *testing.T) {
 			},
 		},
 		{
-			name:      "check error - symbol too small",
-			wantToAdd: false,
+			name:       "check error - symbol too small",
+			wantToUpdt: false,
 			sentCurrency: core.Currency{
 				Symbol: "BR",
 			},
@@ -254,8 +254,8 @@ func Test_UpdateCurrency(t *testing.T) {
 			},
 		},
 		{
-			name:      "update error",
-			wantToAdd: true,
+			name:       "update error",
+			wantToUpdt: true,
 			sentCurrency: core.Currency{
 				Symbol: "BRL",
 			},
@@ -270,8 +270,8 @@ func Test_UpdateCurrency(t *testing.T) {
 			},
 		},
 		{
-			name:      "not found error",
-			wantToAdd: true,
+			name:       "not found error",
+			wantToUpdt: true,
 			sentCurrency: core.Currency{
 				Symbol: "BRL",
 			},
@@ -286,8 +286,8 @@ func Test_UpdateCurrency(t *testing.T) {
 			},
 		},
 		{
-			name:      "no error",
-			wantToAdd: true,
+			name:       "no error",
+			wantToUpdt: true,
 			sentCurrency: core.Currency{
 				Symbol: "BRL",
 			},
@@ -310,7 +310,7 @@ func Test_UpdateCurrency(t *testing.T) {
 			b, err := json.Marshal(tt.sentCurrency)
 			require.NoError(t, err)
 
-			req, err := http.NewRequest(http.MethodPost, "/currencies", strings.NewReader(string(b)))
+			req, err := http.NewRequest(http.MethodPut, "/currencies", strings.NewReader(string(b)))
 			require.NoError(t, err)
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -319,7 +319,7 @@ func Test_UpdateCurrency(t *testing.T) {
 			ctx := echo.New().NewContext(req, rec)
 			ctx.SetPath("/currencies")
 
-			if tt.wantToAdd {
+			if tt.wantToUpdt {
 				mock.EXPECT().UpdateCurrency(gomock.Any(), tt.sentCurrency.Symbol, tt.sentCurrency.Description).
 					Return(tt.updateCurrencyErr)
 			}
@@ -344,7 +344,7 @@ func Test_GetCurrency(t *testing.T) {
 	tests := []struct {
 		name string
 
-		wantToAdd    bool
+		wantToGet    bool
 		sentCurrency string
 
 		getCurrencyErr  error
@@ -357,7 +357,7 @@ func Test_GetCurrency(t *testing.T) {
 	}{
 		{
 			name:            "check error - symbol too small",
-			wantToAdd:       false,
+			wantToGet:       false,
 			sentCurrency:    "BR",
 			getCurrencyErr:  nil,
 			getCurrencyResp: core.Currency{},
@@ -372,7 +372,7 @@ func Test_GetCurrency(t *testing.T) {
 		},
 		{
 			name:            "add error",
-			wantToAdd:       true,
+			wantToGet:       true,
 			sentCurrency:    "BRL",
 			getCurrencyResp: core.Currency{},
 			getCurrencyErr:  errors.New("some err"),
@@ -387,7 +387,7 @@ func Test_GetCurrency(t *testing.T) {
 		},
 		{
 			name:            "not found error",
-			wantToAdd:       true,
+			wantToGet:       true,
 			sentCurrency:    "BRL",
 			getCurrencyResp: core.Currency{},
 			getCurrencyErr:  core.ErrNotFound,
@@ -402,7 +402,7 @@ func Test_GetCurrency(t *testing.T) {
 		},
 		{
 			name:      "no error",
-			wantToAdd: true,
+			wantToGet: true,
 			getCurrencyResp: core.Currency{
 				Symbol: "BRL",
 			},
@@ -426,7 +426,7 @@ func Test_GetCurrency(t *testing.T) {
 			b, err := json.Marshal(tt.sentCurrency)
 			require.NoError(t, err)
 
-			req, err := http.NewRequest(http.MethodPost, "/currencies", strings.NewReader(string(b)))
+			req, err := http.NewRequest(http.MethodGet, "/currencies", strings.NewReader(string(b)))
 			require.NoError(t, err)
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -437,7 +437,7 @@ func Test_GetCurrency(t *testing.T) {
 			ctx.SetParamNames("symbol")
 			ctx.SetParamValues(tt.sentCurrency)
 
-			if tt.wantToAdd {
+			if tt.wantToGet {
 				mock.EXPECT().GetCurrency(gomock.Any(), tt.sentCurrency).
 					Return(tt.getCurrencyResp, tt.getCurrencyErr)
 			}
@@ -462,7 +462,7 @@ func Test_RemoveCurrency(t *testing.T) {
 	tests := []struct {
 		name string
 
-		wantToAdd    bool
+		wantToRmv    bool
 		sentCurrency string
 
 		rmvCurrencyErr error
@@ -474,7 +474,7 @@ func Test_RemoveCurrency(t *testing.T) {
 	}{
 		{
 			name:           "check error - symbol too small",
-			wantToAdd:      false,
+			wantToRmv:      false,
 			sentCurrency:   "BR",
 			rmvCurrencyErr: nil,
 			wantBody:       "",
@@ -488,7 +488,7 @@ func Test_RemoveCurrency(t *testing.T) {
 		},
 		{
 			name:           "add error",
-			wantToAdd:      true,
+			wantToRmv:      true,
 			sentCurrency:   "BRL",
 			rmvCurrencyErr: errors.New("some err"),
 			wantBody:       "",
@@ -502,7 +502,7 @@ func Test_RemoveCurrency(t *testing.T) {
 		},
 		{
 			name:           "not found error",
-			wantToAdd:      true,
+			wantToRmv:      true,
 			sentCurrency:   "BRL",
 			rmvCurrencyErr: core.ErrNotFound,
 			wantBody:       "",
@@ -516,7 +516,7 @@ func Test_RemoveCurrency(t *testing.T) {
 		},
 		{
 			name:           "no error",
-			wantToAdd:      true,
+			wantToRmv:      true,
 			sentCurrency:   "BRL",
 			rmvCurrencyErr: nil,
 			wantBody:       "",
@@ -537,7 +537,7 @@ func Test_RemoveCurrency(t *testing.T) {
 			b, err := json.Marshal(tt.sentCurrency)
 			require.NoError(t, err)
 
-			req, err := http.NewRequest(http.MethodPost, "/currencies", strings.NewReader(string(b)))
+			req, err := http.NewRequest(http.MethodDelete, "/currencies", strings.NewReader(string(b)))
 			require.NoError(t, err)
 
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -548,7 +548,7 @@ func Test_RemoveCurrency(t *testing.T) {
 			ctx.SetParamNames("symbol")
 			ctx.SetParamValues(tt.sentCurrency)
 
-			if tt.wantToAdd {
+			if tt.wantToRmv {
 				mock.EXPECT().RemoveCurrency(gomock.Any(), tt.sentCurrency).
 					Return(tt.rmvCurrencyErr)
 			}

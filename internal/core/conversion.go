@@ -31,13 +31,11 @@ type ConversionResp struct {
 }
 
 func (c ConversionAPI) Check() (err error) {
-	_, ok := allowedCurrencies[c.From]
-	if !ok {
-		return ErrInvalidFromCurrency
+	if len(c.From) < 3 {
+		return ErrSymbolMinLen
 	}
-	_, ok = allowedCurrencies[c.To]
-	if !ok {
-		return ErrInvalidToCurrency
+	if len(c.To) < 3 {
+		return ErrSymbolMinLen
 	}
 	_, err = strconv.ParseFloat(c.Amount, 64)
 	if err != nil {
