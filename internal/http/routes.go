@@ -10,7 +10,7 @@ func (s Server) RouterRegister(e *echo.Echo) {
 	e.GET("/", HealthCheck)
 	e.GET("/convertion/convert", s.Convert)
 	// currency management
-	e.GET("/currencies", HealthCheck)               // get all allowed currencies
+	e.GET("/currencies", s.GetCurrencies)           // get all allowed currencies
 	e.POST("/currencies/{currency}", HealthCheck)   // register new allowed currency
 	e.DELETE("/currencies/{currency}", HealthCheck) // remove allowed currency
 	// currency rate management

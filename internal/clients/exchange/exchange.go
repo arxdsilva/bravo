@@ -39,7 +39,6 @@ func (e Exchange) GetCurrencies(ctx context.Context) (l map[string]string, err e
 		lg.WithError(err).Error("[GetCurrencies] NewRequest")
 		return
 	}
-	req.Header.Add("apiKey", e.APIKey)
 
 	req = req.WithContext(ctx)
 	resp, err := e.client.Do(req)
@@ -62,10 +61,46 @@ func (e Exchange) GetCurrencies(ctx context.Context) (l map[string]string, err e
 		lg.WithField("success", symbols.Success).Warn("[GetCurrencies] success")
 		return
 	}
+
 	l = map[string]string{}
 	for k, v := range symbols.Symbols {
 		l[k] = v.Description
 	}
+
+	url = fmt.Sprintf("%v/cryptocurrencies", e.BaseURL)
+	req, err = http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		lg.WithError(err).Error("[GetCurrencies] NewRequest")
+		return
+	}
+
+	req = req.WithContext(ctx)
+	resp, err = e.client.Do(req)
+	if err != nil {
+		lg.WithError(err).Error("[GetCurrencies] client.Do")
+		return
+	}
+	b, err = io.ReadAll(resp.Body)
+	if err != nil {
+		lg.WithError(err).Error("[GetCurrencies] ReadAll")
+		return
+	}
+	crypto := &core.CryptoClientResp{}
+	err = json.Unmarshal(b, crypto)
+	if err != nil {
+		lg.WithError(err).Error("[GetCurrencies] Unmarshal")
+		return
+	}
+	if !crypto.Success {
+		lg.WithField("success", symbols.Success).Warn("[GetCurrencies] success")
+		return
+	}
+
+	l = map[string]string{}
+	for _, v := range crypto.Cryptocurrencies {
+		l[v.Symbol] = v.Name
+	}
+
 	lg.Info("[GetCurrencies] ok")
 	return l, err
 }
@@ -81,7 +116,6 @@ func (e Exchange) Exchange(ctx context.Context, from, to string, amount float64)
 		lg.WithError(err).Error("[Exchange] NewRequest")
 		return core.ConversionResp{}, err
 	}
-	req.Header.Add("apiKey", e.APIKey)
 
 	q := req.URL.Query()
 	q.Add("from", from)

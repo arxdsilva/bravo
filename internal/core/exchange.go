@@ -24,3 +24,13 @@ type Symbol struct {
 	Description string `json:"description"`
 	Code        string `json:"code"`
 }
+
+type CryptoClientResp struct {
+	Success          bool                  `json:"success"`
+	Cryptocurrencies map[string]CryptoDesc `json:"cryptocurrencies"`
+}
+
+type CryptoDesc struct {
+	Symbol string `json:"symbol"`
+	Name   string `json:""`
+}

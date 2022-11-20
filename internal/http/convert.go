@@ -8,7 +8,17 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Convert retrieves a conversion from two currencies
+//
+// HTTP responses:
+// 200 OK
+// 400 Bad request
+// 500 Internal Server Error
 func (s Server) Convert(c echo.Context) (err error) {
+	lg := log.WithFields(log.Fields{
+		"pkg":   "http",
+		"route": "convert",
+	})
 	conv := core.ConversionAPI{
 		From:   c.QueryParam("from"),
 		To:     c.QueryParam("to"),
@@ -16,27 +26,27 @@ func (s Server) Convert(c echo.Context) (err error) {
 	}
 
 	if err := conv.Check(); err != nil {
-		log.WithError(err).Error("[Convert] Check")
+		lg.WithError(err).Error("check")
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	convService, shouldConvert, err := core.ConvertToService(conv)
 	if err != nil {
-		log.WithError(err).Error("[Convert] ConvertToService")
+		lg.WithError(err).Error("convertToService")
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	if !shouldConvert {
-		log.WithField("should_convert", shouldConvert).Info("[Convert] should_convert")
+		lg.WithField("should_convert", shouldConvert).Info("should_convert")
 		return c.JSON(http.StatusOK, core.TransformSVCToResp(convService, convService.Amount, "no-edit"))
 	}
 
 	amount, source, err := s.service.Convert(c.Request().Context(), convService)
 	if err != nil {
-		log.WithError(err).Error("[Convert] service.Convert")
+		lg.WithError(err).Error("service.Convert")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	log.Info("[Convert] success")
+	lg.Info("success")
 	return c.JSON(http.StatusOK, core.TransformSVCToResp(convService, amount, source))
 }
