@@ -16,6 +16,7 @@ type Resolver interface {
 	GetRates(ctx context.Context) (interface{}, error)
 	CreateRate(ctx context.Context, from, to string, rate float64) error
 	UpdateRate(ctx context.Context, from, to string, rate float64) error
+	RemoveRate(ctx context.Context, from, to string) error
 }
 
 type Exchanger interface {
@@ -114,5 +115,14 @@ func (s Service) UpdateRate(ctx context.Context, from, to string, rate float64) 
 	// update rate
 
 	// update reverse rate
+	return
+}
+
+func (s Service) RemoveRate(ctx context.Context, from, to string) (err error) {
+	// ensure currencies exist and are stored
+
+	// remove rate
+
+	// remove reverse rate
 	return
 }

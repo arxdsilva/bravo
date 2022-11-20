@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/arxdsilva/bravo/internal/core"
@@ -89,9 +90,54 @@ func (s Server) UpdateRate(c echo.Context) (err error) {
 
 	err = s.service.UpdateRate(
 		c.Request().Context(), rate.From, rate.To, rate.Rate)
-	if err != nil { // check not found err
+	if err != nil && err != core.ErrNotFound { // check not found err
 		lg.WithError(err).Error("service.UpdateRate")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	if errors.Is(err, core.ErrNotFound) {
+		lg.WithError(core.ErrCurrencyNotFound).Error("not found")
+		return echo.NewHTTPError(http.StatusBadRequest, core.ErrCurrencyNotFound.Error())
+	}
+
+	lg.Info("success")
+	return c.JSON(http.StatusCreated, rate)
+}
+
+// RemoveRate tries to create a currency rate into DB
+//
+// HTTP responses:
+// 201 Created
+// 400 Bad Request
+// 500 Internal Server Error
+func (s Server) RemoveRate(c echo.Context) (err error) {
+	lg := log.WithFields(log.Fields{
+		"pkg":   "http",
+		"route": "RemoveRate",
+		"cid":   c.Response().Header().Get(echo.HeaderXRequestID),
+	})
+
+	rate := &core.CurrencyRate{}
+	if err = c.Bind(rate); err != nil {
+		lg.WithError(err).Error("c.Bind")
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	if err = rate.Check(); err != nil {
+		lg.WithError(err).Error("rate.Check")
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	err = s.service.RemoveRate(
+		c.Request().Context(), rate.From, rate.To)
+	if err != nil && err != core.ErrNotFound { // check not found err
+		lg.WithError(err).Error("service.RemoveRate")
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	if errors.Is(err, core.ErrNotFound) {
+		lg.WithError(core.ErrCurrencyNotFound).Error("not found")
+		return echo.NewHTTPError(http.StatusBadRequest, core.ErrCurrencyNotFound.Error())
 	}
 
 	lg.Info("success")

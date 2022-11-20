@@ -19,7 +19,7 @@ func (s Server) RouterRegister(e *echo.Echo) {
 	e.GET("/convertion/rates", s.GetRates)
 	e.POST("/convertion/rates", s.CreateRate)
 	e.PUT("/convertion/rates", s.UpdateRate)
-	e.DELETE("/convertion/rates", HealthCheck)
+	e.DELETE("/convertion/rates", s.RemoveRate)
 }
 
 // todo: allow this to be configurable and to pass optional checks
