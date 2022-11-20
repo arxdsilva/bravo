@@ -11,11 +11,13 @@ func (s Server) RouterRegister(e *echo.Echo) {
 	e.GET("/convertion/convert", s.Convert)
 	// currency management
 	e.GET("/currencies", s.GetCurrencies)           // get all allowed currencies
-	e.POST("/currencies/{currency}", HealthCheck)   // register new allowed currency
+	e.POST("/currencies", s.AddCurrency)            // register new allowed currency
+	e.GET("/currencies/{currency}", HealthCheck)    // gets a currency infos
+	e.PUT("/currencies/{currency}", HealthCheck)    // register new allowed currency
 	e.DELETE("/currencies/{currency}", HealthCheck) // remove allowed currency
 	// currency rate management
-	e.POST("/convertion/currency/rate", HealthCheck)
-	e.PUT("/convertion/currency/rate", HealthCheck)
+	e.POST("/convertion/{currency}/rate", HealthCheck)
+	e.PUT("/convertion/{currency}/rate", HealthCheck)
 }
 
 // todo: allow this to be configurable and to pass optional checks

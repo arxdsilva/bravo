@@ -18,6 +18,7 @@ func (s Server) Convert(c echo.Context) (err error) {
 	lg := log.WithFields(log.Fields{
 		"pkg":   "http",
 		"route": "convert",
+		"cid":   c.Response().Header().Get(echo.HeaderXRequestID),
 	})
 	conv := core.ConversionAPI{
 		From:   c.QueryParam("from"),

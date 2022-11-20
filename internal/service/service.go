@@ -9,6 +9,7 @@ import (
 type Resolver interface {
 	Convert(ctx context.Context, conv core.ConversionSVC) (amount float64, source string, err error)
 	GetCurrencies(ctx context.Context) (core.Currencies, error)
+	AddCurrency(ctx context.Context, symbol, description string) error
 }
 
 type Exchanger interface {
@@ -54,5 +55,13 @@ func (s Service) GetCurrencies(ctx context.Context) (cs core.Currencies, err err
 			Source:      "exchange",
 		})
 	}
+	return
+}
+
+func (s Service) AddCurrency(ctx context.Context, symbol, description string) (err error) {
+	// check whether the currency already exists
+	// if exists return ok without inserting
+
+	// add currency to repo
 	return
 }
