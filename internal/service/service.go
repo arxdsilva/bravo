@@ -10,6 +10,7 @@ type Resolver interface {
 	Convert(ctx context.Context, conv core.ConversionSVC) (amount float64, source string, err error)
 	GetCurrencies(ctx context.Context) (core.Currencies, error)
 	AddCurrency(ctx context.Context, symbol, description string) error
+	GetCurrency(ctx context.Context, symbol string) (core.Currency, error)
 }
 
 type Exchanger interface {
@@ -63,5 +64,10 @@ func (s Service) AddCurrency(ctx context.Context, symbol, description string) (e
 	// if exists return ok without inserting
 
 	// add currency to repo
+	return
+}
+
+func (s Service) GetCurrency(ctx context.Context, symbol string) (cr core.Currency, err error) {
+	// get currency from repo
 	return
 }
