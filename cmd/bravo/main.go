@@ -9,7 +9,6 @@ import (
 
 	"github.com/arxdsilva/bravo/internal/clients/exchange"
 	"github.com/arxdsilva/bravo/internal/http"
-	"github.com/arxdsilva/bravo/internal/jwt"
 	"github.com/arxdsilva/bravo/internal/logger"
 	"github.com/arxdsilva/bravo/internal/option"
 	"github.com/arxdsilva/bravo/internal/service"
@@ -52,14 +51,12 @@ func startup(ctx context.Context, cfg *option.Config) error {
 
 	// maybe add some tracer
 
-	provider := jwt.NewProvider(cfg.JWT) // take the provider and pass to the rest api
-
 	excg := exchange.New(cfg.Exchange)
 
 	svc := service.NewService(nil, excg)
 
 	// change this
-	srv := http.NewServer(svc, &provider, cfg.HTTP)
+	srv := http.NewServer(svc, nil, cfg.HTTP)
 
 	errg, ctx := errgroup.WithContext(ctx)
 	errg.Go(func() error {

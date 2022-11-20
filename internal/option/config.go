@@ -5,7 +5,6 @@ import (
 
 	"github.com/arxdsilva/bravo/internal/clients/exchange"
 	"github.com/arxdsilva/bravo/internal/http"
-	"github.com/arxdsilva/bravo/internal/jwt"
 	"github.com/arxdsilva/bravo/internal/logger"
 	"github.com/go-playground/validator/v10"
 	"github.com/kelseyhightower/envconfig"
@@ -16,7 +15,6 @@ const prefix = "APP"
 type Config struct {
 	HTTP     http.Config
 	Log      logger.Config
-	JWT      jwt.Config
 	Exchange exchange.Config
 }
 

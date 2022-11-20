@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/arxdsilva/bravo/internal/jwt"
 	"github.com/arxdsilva/bravo/internal/service"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
@@ -13,11 +12,11 @@ import (
 type Server struct {
 	server        *echo.Echo
 	service       service.Resolver
-	tokenProvider *jwt.TokenProvider
+	tokenProvider interface{} // -- could have a JWT provider for auth
 	config        Config
 }
 
-func NewServer(svc service.Resolver, tp *jwt.TokenProvider, cfg Config) Server {
+func NewServer(svc service.Resolver, tp interface{}, cfg Config) Server {
 	return Server{
 		service:       svc,
 		tokenProvider: tp,
