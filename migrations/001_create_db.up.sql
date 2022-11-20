@@ -32,7 +32,13 @@ CREATE TABLE IF NOT EXISTS public.currencies (
 	CONSTRAINT currencies_pkey PRIMARY KEY (symbol)
 );
 
-CREATE TYPE calculation_types AS ENUM ('mult','div');
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'calculation_types') THEN
+        CREATE TYPE calculation_types AS ENUM ('mult','div');
+    END IF;
+END$$;
+
 
 --gopg:split
 CREATE TABLE IF NOT EXISTS public.currency_rates (

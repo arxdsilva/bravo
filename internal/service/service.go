@@ -25,11 +25,11 @@ type Exchanger interface {
 }
 
 type Service struct {
-	Repo     ConversionRepository
+	Repo     Repository
 	Exchange Exchanger
 }
 
-func NewService(repo ConversionRepository, exchange Exchanger) Service {
+func NewService(repo Repository, exchange Exchanger) Service {
 	return Service{
 		Repo:     repo,
 		Exchange: exchange,

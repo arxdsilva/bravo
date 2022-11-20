@@ -12,8 +12,11 @@ import (
 	"github.com/arxdsilva/bravo/internal/logger"
 	"github.com/arxdsilva/bravo/internal/option"
 	"github.com/arxdsilva/bravo/internal/service"
+	"github.com/arxdsilva/bravo/internal/storage/postgres"
+	migration "github.com/gosidekick/migration/v3"
 	"golang.org/x/sync/errgroup"
 
+	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -56,11 +59,20 @@ func startup(ctx context.Context, cfg *option.Config) error {
 
 	excg := exchange.New(cfg.Exchange)
 
-	svc := service.NewService(nil, excg)
+	db, err := postgres.New(ctx, cfg.DB)
+	if err != nil {
+		return fmt.Errorf(`could not connect to db %w`, err)
+	}
 
+	err = migrate(ctx, cfg.DB)
+	if err != nil {
+		return fmt.Errorf(`could not migrate db %w`, err)
+	}
+
+	svc := service.NewService(db, excg)
 	srv := http.NewServer(svc, cfg.HTTP)
 
-	// add seed svc
+	// run seed svc
 
 	errg, ctx := errgroup.WithContext(ctx)
 	errg.Go(func() error {
@@ -85,4 +97,19 @@ func setupGracefulShutdown(stop func()) {
 		log.Info("received interrupt signal. Gracefully shutting down the service.")
 		stop()
 	}()
+}
+
+func migrate(ctx context.Context, cfg postgres.Config) error {
+	n, executed, err := migration.Run(
+		ctx, "migrations",
+		fmt.Sprintf(
+			"postgres://%s:%s@%s:%s/%s?sslmode=%s",
+			cfg.User, cfg.Password,
+			cfg.Host, cfg.Port,
+			cfg.DB, "disable"), "up")
+	if err != nil {
+		return err
+	}
+	log.WithFields(log.Fields{"number": n, "executed": executed}).Info("migration")
+	return nil
 }
