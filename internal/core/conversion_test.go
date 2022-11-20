@@ -15,35 +15,16 @@ func TestConversionAPI_Check(t *testing.T) {
 		wantErrEquals error
 	}{
 		{
-			name:          "empty should return From err",
+			name:          "empty should return min len err",
 			api:           ConversionAPI{},
 			wantErrFn:     require.Error,
-			wantErrEquals: ErrInvalidFromCurrency,
+			wantErrEquals: ErrSymbolMinLen,
 		},
 		{
-			name: "should return To err",
-			api: ConversionAPI{
-				From: "USD",
-			},
+			name:          "should return min len err",
+			api:           ConversionAPI{From: "USD"},
 			wantErrFn:     require.Error,
-			wantErrEquals: ErrInvalidToCurrency,
-		},
-		{
-			name: "invalid To err",
-			api: ConversionAPI{
-				From: "USD",
-				To:   "LALA",
-			},
-			wantErrFn:     require.Error,
-			wantErrEquals: ErrInvalidToCurrency,
-		},
-		{
-			name: "invalid From err",
-			api: ConversionAPI{
-				From: "USDa",
-			},
-			wantErrFn:     require.Error,
-			wantErrEquals: ErrInvalidFromCurrency,
+			wantErrEquals: ErrSymbolMinLen,
 		},
 		{
 			name: "amount err",
