@@ -53,9 +53,45 @@ func (s Server) AddCurrency(c echo.Context) (err error) {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	err = s.service.AddCurrency(c.Request().Context(), currency.Symbol, currency.Description)
+	err = s.service.AddCurrency(
+		c.Request().Context(), currency.Symbol, currency.Description)
 	if err != nil {
-		lg.WithError(err).Error("service.GetCurrencies")
+		lg.WithError(err).Error("service.AddCurrency")
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	lg.Info("success")
+	return c.JSON(http.StatusCreated, currency)
+}
+
+// UpdateCurrency retrieves currencies from DB and external exchange
+//
+// HTTP responses:
+// 204 No Content
+// 400 Bad Request
+// 500 Internal Server Error
+func (s Server) UpdateCurrency(c echo.Context) (err error) {
+	lg := log.WithFields(log.Fields{
+		"pkg":   "http",
+		"route": "UpdateCurrency",
+		"cid":   c.Response().Header().Get(echo.HeaderXRequestID),
+	})
+
+	currency := &core.Currency{}
+
+	if err = c.Bind(currency); err != nil {
+		lg.WithError(err).Error("c.Bind")
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	if err = currency.Check(); err != nil {
+		lg.WithError(err).Error("currency.Check")
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	err = s.service.UpdateCurrency(
+		c.Request().Context(), currency.Symbol, currency.Description)
+	if err != nil {
+		lg.WithError(err).Error("service.UpdateCurrency")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	lg.Info("success")
@@ -86,7 +122,7 @@ func (s Server) GetCurrency(c echo.Context) (err error) {
 
 	svcCurrency, err := s.service.GetCurrency(c.Request().Context(), cr.Symbol)
 	if err != nil {
-		lg.WithError(err).Error("service.GetCurrencies")
+		lg.WithError(err).Error("service.GetCurrency")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
@@ -123,7 +159,7 @@ func (s Server) RemoveCurrency(c echo.Context) (err error) {
 
 	svcCurrency, err := s.service.RemoveCurrency(c.Request().Context(), cr.Symbol)
 	if err != nil {
-		lg.WithError(err).Error("service.GetCurrency")
+		lg.WithError(err).Error("service.RemoveCurrency")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
