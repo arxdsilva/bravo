@@ -14,6 +14,7 @@ type Resolver interface {
 	GetCurrency(ctx context.Context, symbol string) (core.Currency, error)
 	RemoveCurrency(ctx context.Context, symbol string) (core.Currency, error)
 	GetRates(ctx context.Context) (interface{}, error)
+	CreateRate(ctx context.Context, from, to string, rate float64) error
 }
 
 type Exchanger interface {
@@ -79,6 +80,8 @@ func (s Service) UpdateCurrency(ctx context.Context, symbol, description string)
 }
 
 func (s Service) GetCurrency(ctx context.Context, symbol string) (cr core.Currency, err error) {
+	// could use a cache system to reduce DB toll
+
 	// get currency from repo
 	return
 }
@@ -92,5 +95,14 @@ func (s Service) RemoveCurrency(ctx context.Context, symbol string) (cr core.Cur
 
 func (s Service) GetRates(ctx context.Context) (rts interface{}, err error) {
 	// get currency rates from repo
+	return
+}
+
+func (s Service) CreateRate(ctx context.Context, from, to string, rate float64) (err error) {
+	// ensure currencies exist and are stored
+
+	// create rate
+
+	// create reverse rate
 	return
 }

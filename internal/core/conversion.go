@@ -10,12 +10,6 @@ var allowedCurrencies = map[string]bool{
 	"ETH": true,
 }
 
-type CurrencyRate struct {
-	From string  `json:"from"`
-	To   string  `json:"to"`
-	Rate float64 `json:"rate"`
-}
-
 type ConversionAPI struct {
 	From   string
 	To     string
