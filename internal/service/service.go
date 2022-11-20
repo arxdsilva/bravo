@@ -11,6 +11,7 @@ type Resolver interface {
 	GetCurrencies(ctx context.Context) (core.Currencies, error)
 	AddCurrency(ctx context.Context, symbol, description string) error
 	GetCurrency(ctx context.Context, symbol string) (core.Currency, error)
+	RemoveCurrency(ctx context.Context, symbol string) (core.Currency, error)
 }
 
 type Exchanger interface {
@@ -69,5 +70,12 @@ func (s Service) AddCurrency(ctx context.Context, symbol, description string) (e
 
 func (s Service) GetCurrency(ctx context.Context, symbol string) (cr core.Currency, err error) {
 	// get currency from repo
+	return
+}
+
+func (s Service) RemoveCurrency(ctx context.Context, symbol string) (cr core.Currency, err error) {
+	// get currency from repo
+
+	// remove from repo
 	return
 }

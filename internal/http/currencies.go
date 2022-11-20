@@ -31,7 +31,7 @@ func (s Server) GetCurrencies(c echo.Context) (err error) {
 // AddCurrency retrieves currencies from DB and external exchange
 //
 // HTTP responses:
-// 200 OK
+// 201 Created
 // 400 Bad Request
 // 500 Internal Server Error
 func (s Server) AddCurrency(c echo.Context) (err error) {
@@ -67,6 +67,7 @@ func (s Server) AddCurrency(c echo.Context) (err error) {
 // HTTP responses:
 // 200 OK
 // 400 Bad Request
+// 404 Not Found
 // 500 Internal Server Error
 func (s Server) GetCurrency(c echo.Context) (err error) {
 	lg := log.WithFields(log.Fields{
@@ -86,6 +87,43 @@ func (s Server) GetCurrency(c echo.Context) (err error) {
 	svcCurrency, err := s.service.GetCurrency(c.Request().Context(), cr.Symbol)
 	if err != nil {
 		lg.WithError(err).Error("service.GetCurrencies")
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	if svcCurrency.Symbol == "" {
+		lg.Error("symbol not found")
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	}
+
+	lg.Info("success")
+	return c.JSON(http.StatusOK, svcCurrency)
+}
+
+// RemoveCurrency retrieves a currency from DB
+//
+// HTTP responses:
+// 200 OK
+// 400 Bad Request
+// 404 Not Found
+// 500 Internal Server Error
+func (s Server) RemoveCurrency(c echo.Context) (err error) {
+	lg := log.WithFields(log.Fields{
+		"pkg":   "http",
+		"route": "RemoveCurrency",
+		"cid":   c.Response().Header().Get(echo.HeaderXRequestID),
+	})
+	symbol := c.Param("symbol")
+
+	cr := &core.Currency{Symbol: symbol}
+
+	if err = cr.Check(); err != nil {
+		lg.WithError(err).Error("currency.Check")
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	svcCurrency, err := s.service.RemoveCurrency(c.Request().Context(), cr.Symbol)
+	if err != nil {
+		lg.WithError(err).Error("service.GetCurrency")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
