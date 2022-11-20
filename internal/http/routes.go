@@ -16,8 +16,10 @@ func (s Server) RouterRegister(e *echo.Echo) {
 	e.PUT("/currencies/:symbol", s.UpdateCurrency)
 	e.DELETE("/currencies/:symbol", s.RemoveCurrency)
 	// currency rate management
-	e.POST("/convertion/:symbol/rate", HealthCheck)
-	e.PUT("/convertion/:symbol/rate", HealthCheck)
+	e.GET("/convertion/rates", s.GetRates)
+	e.POST("/convertion/rates", HealthCheck)
+	e.PUT("/convertion/rates", HealthCheck)
+	e.DELETE("/convertion/rates", HealthCheck)
 }
 
 // todo: allow this to be configurable and to pass optional checks
