@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/arxdsilva/bravo/internal/core"
@@ -90,10 +91,16 @@ func (s Server) UpdateCurrency(c echo.Context) (err error) {
 
 	err = s.service.UpdateCurrency(
 		c.Request().Context(), currency.Symbol, currency.Description)
-	if err != nil {
+	if err != nil && err != core.ErrNotFound {
 		lg.WithError(err).Error("service.UpdateCurrency")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
+
+	if errors.Is(err, core.ErrNotFound) {
+		lg.WithError(core.ErrCurrencyNotFound).Error("not found")
+		return echo.NewHTTPError(http.StatusBadRequest, core.ErrCurrencyNotFound.Error())
+	}
+
 	lg.Info("success")
 	return c.JSON(http.StatusCreated, currency)
 }
@@ -121,14 +128,14 @@ func (s Server) GetCurrency(c echo.Context) (err error) {
 	}
 
 	svcCurrency, err := s.service.GetCurrency(c.Request().Context(), cr.Symbol)
-	if err != nil {
+	if err != nil && err != core.ErrNotFound {
 		lg.WithError(err).Error("service.GetCurrency")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	if svcCurrency.Symbol == "" {
-		lg.Error("symbol not found")
-		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	if errors.Is(err, core.ErrNotFound) {
+		lg.WithError(core.ErrCurrencyNotFound).Error("not found")
+		return echo.NewHTTPError(http.StatusBadRequest, core.ErrCurrencyNotFound.Error())
 	}
 
 	lg.Info("success")
@@ -138,7 +145,7 @@ func (s Server) GetCurrency(c echo.Context) (err error) {
 // RemoveCurrency retrieves a currency from DB
 //
 // HTTP responses:
-// 200 OK
+// 204 No Content
 // 400 Bad Request
 // 404 Not Found
 // 500 Internal Server Error
@@ -157,17 +164,17 @@ func (s Server) RemoveCurrency(c echo.Context) (err error) {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	svcCurrency, err := s.service.RemoveCurrency(c.Request().Context(), cr.Symbol)
-	if err != nil {
+	err = s.service.RemoveCurrency(c.Request().Context(), cr.Symbol)
+	if err != nil && err != core.ErrNotFound {
 		lg.WithError(err).Error("service.RemoveCurrency")
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	if svcCurrency.Symbol == "" {
-		lg.Error("symbol not found")
-		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	if errors.Is(err, core.ErrNotFound) {
+		lg.WithError(core.ErrCurrencyNotFound).Error("not found")
+		return echo.NewHTTPError(http.StatusBadRequest, core.ErrCurrencyNotFound.Error())
 	}
 
 	lg.Info("success")
-	return c.JSON(http.StatusCreated, svcCurrency)
+	return c.NoContent(http.StatusNoContent)
 }

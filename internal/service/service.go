@@ -12,7 +12,7 @@ type Resolver interface {
 	AddCurrency(ctx context.Context, symbol, description string) error
 	UpdateCurrency(ctx context.Context, symbol, description string) error
 	GetCurrency(ctx context.Context, symbol string) (core.Currency, error)
-	RemoveCurrency(ctx context.Context, symbol string) (core.Currency, error)
+	RemoveCurrency(ctx context.Context, symbol string) error
 	GetRates(ctx context.Context) (interface{}, error)
 	CreateRate(ctx context.Context, from, to string, rate float64) error
 	UpdateRate(ctx context.Context, from, to string, rate float64) error
@@ -88,7 +88,7 @@ func (s Service) GetCurrency(ctx context.Context, symbol string) (cr core.Curren
 	return
 }
 
-func (s Service) RemoveCurrency(ctx context.Context, symbol string) (cr core.Currency, err error) {
+func (s Service) RemoveCurrency(ctx context.Context, symbol string) (err error) {
 	// get currency from repo
 
 	// remove from repo

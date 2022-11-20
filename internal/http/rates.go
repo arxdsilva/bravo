@@ -67,7 +67,7 @@ func (s Server) CreateRate(c echo.Context) (err error) {
 // UpdateRate tries to create a currency rate into DB
 //
 // HTTP responses:
-// 201 Created
+// 202 Accepted
 // 400 Bad Request
 // 500 Internal Server Error
 func (s Server) UpdateRate(c echo.Context) (err error) {
@@ -101,13 +101,13 @@ func (s Server) UpdateRate(c echo.Context) (err error) {
 	}
 
 	lg.Info("success")
-	return c.JSON(http.StatusCreated, rate)
+	return c.JSON(http.StatusAccepted, rate)
 }
 
 // RemoveRate tries to create a currency rate into DB
 //
 // HTTP responses:
-// 201 Created
+// 204 No Content
 // 400 Bad Request
 // 500 Internal Server Error
 func (s Server) RemoveRate(c echo.Context) (err error) {
@@ -141,5 +141,5 @@ func (s Server) RemoveRate(c echo.Context) (err error) {
 	}
 
 	lg.Info("success")
-	return c.JSON(http.StatusCreated, rate)
+	return c.NoContent(http.StatusNoContent)
 }
