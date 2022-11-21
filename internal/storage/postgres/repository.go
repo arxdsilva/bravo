@@ -32,3 +32,23 @@ func New(ctx context.Context, cfg Config) (DB, error) {
 
 	return DB{DB: db}, nil
 }
+
+type Currency struct {
+	Symbol      string
+	Description string
+	Source      string
+}
+
+func (db DB) CountCurrencies(ctx context.Context) (int, error) {
+	result, err := db.DB.ExecContext(ctx, "SELECT COUNT(*) FROM public.currencies")
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+func (db DB) CreateCurrency(ctx context.Context, symbol, description, source string) error {
+	c := &Currency{Symbol: symbol, Description: description, Source: source}
+	_, err := db.DB.Model(c).Context(ctx).Insert()
+	return err
+}

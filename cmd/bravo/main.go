@@ -70,6 +70,9 @@ func startup(ctx context.Context, cfg *option.Config) error {
 	}
 
 	svc := service.NewService(db, excg)
+
+	go svc.Seed(ctx)
+
 	srv := http.NewServer(svc, cfg.HTTP)
 
 	// run seed svc

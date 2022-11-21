@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/arxdsilva/bravo/internal/core"
+	log "github.com/sirupsen/logrus"
 )
 
 type Resolver interface {
@@ -125,4 +126,19 @@ func (s Service) RemoveRate(ctx context.Context, from, to string) (err error) {
 
 	// remove reverse rate
 	return
+}
+
+func (s Service) Seed(ctx context.Context) error {
+	currencies, err := s.Exchange.GetCurrencies(ctx)
+	if err != nil {
+		return err
+	}
+	for symbol, desc := range currencies {
+		if err = s.Repo.CreateCurrency(ctx, symbol, desc, "exchange"); err != nil {
+			log.Error("error: ", err.Error())
+			return err
+		}
+	}
+	log.Info("seed ended")
+	return nil
 }
